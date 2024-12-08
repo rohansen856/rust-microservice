@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:latest
+    container_name: redis-server
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    environment:
+      REDIS_REPLICATION_MODE: "master"
+      REDIS_SAVE_INTERVAL: "900 1 300 10 60 10000"
+      REDIS_LOG_LEVEL: "notice"
+    command: [
+      "redis-server", 
+      "--appendonly", "yes",
+      "--maxmemory", "256mb",                # Set max memory limit for Redis
+      "--maxmemory-policy", "allkeys-lru"    # Eviction policy (LRU = Least Recently Used)
+    ]
+
+volumes:
+  redis-data:
+    driver: local

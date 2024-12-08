@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres-server
+    restart: always
+    environment:
+      POSTGRES_USER: admin  # Username for PostgreSQL
+      POSTGRES_PASSWORD: securepassword  # Password for the PostgreSQL user
+      POSTGRES_DB: mydb  # Default database to create
+    ports:
+      - "5432:5432"  # Expose the PostgreSQL port
+    volumes:
+      - postgres-data:/var/lib/postgresql/data  # Persistent storage for data
+      - ./init-db:/docker-entrypoint-initdb.d/  # For initialization scripts (optional)
+
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "admin"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  postgres-data:
+    driver: local  # Persistent storage driver
