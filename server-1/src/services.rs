@@ -34,6 +34,9 @@ pub async fn test_server() -> impl Responder {
 
 #[get("/todos")]
 pub async fn fetch_todos(state: Data<AppState>) -> impl Responder {
+    let kafka_producer = &state.kafka_producer;
+    kafka_producer.produce("test-topic", "fetch").await;
+
     match sqlx::query_as::<_, Todo>(
         "SELECT id, title, description, status, due_date, created_at, updated_at FROM todo"
     )
@@ -47,6 +50,9 @@ pub async fn fetch_todos(state: Data<AppState>) -> impl Responder {
 
 #[post("/todo")]
 pub async fn create_todo(state: Data<AppState>, body: Json<CreateTodoBody>) -> impl Responder {
+    let kafka_producer = &state.kafka_producer;
+    kafka_producer.produce("test-topic", "fetch").await;
+
     let status = body.status.clone().unwrap_or_else(|| "pending".to_string());
 
     match sqlx::query_as::<_, Todo>(

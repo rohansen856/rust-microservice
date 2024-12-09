@@ -19,3 +19,4 @@ sqlx = { version = "0.8.2", features = [
     "postgres",
     "chrono",
 ] }
+rdkafka = { version = "0.36.2", features = ["tokio"] }

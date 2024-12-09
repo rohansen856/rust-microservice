@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use actix_web::{web::Data, App, HttpServer};
 use dotenv::dotenv;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
@@ -8,8 +10,12 @@ use services::{create_todo, fetch_todos};
 mod header;
 use header::CustomHeader;
 
+mod kafka;
+use kafka::KafkaProducer;
+
 pub struct AppState {
-    db: Pool<Postgres>
+    db: Pool<Postgres>,
+    kafka_producer: Arc<KafkaProducer>
 }
 
 #[actix_web::main]
@@ -38,10 +44,13 @@ async fn main() -> std::io::Result<()> {
         .await
         .expect("Error building a connection pool");
 
-        println!("Server 2 running on port: {}", port.clone());
+    let kafka_brokers = std::env::var("KAFKA_BROKERS").unwrap_or("localhost:9092".to_string());
+    let kafka_producer = Arc::new(KafkaProducer::new(&kafka_brokers));
+
+    println!("Server 1 running on port: {}", port.clone());
     HttpServer::new(move || {
         App::new()
-            .app_data(Data::new(AppState { db: pool.clone() }))
+            .app_data(Data::new(AppState { db: pool.clone(), kafka_producer: kafka_producer.clone(), }))
             .wrap(CustomHeader)
             .service(create_todo)
             .service(fetch_todos)
