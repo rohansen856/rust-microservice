@@ -23,6 +23,5 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_CREATE_TOPICS: "test-topic:1:1"
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-
     depends_on:
       - zookeeper

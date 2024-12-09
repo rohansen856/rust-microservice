@@ -51,7 +51,7 @@ pub async fn fetch_todos(state: Data<AppState>) -> impl Responder {
 #[post("/todo")]
 pub async fn create_todo(state: Data<AppState>, body: Json<CreateTodoBody>) -> impl Responder {
     let kafka_producer = &state.kafka_producer;
-    kafka_producer.produce("test-topic", "fetch").await;
+    kafka_producer.produce("test-topic", "create").await;
 
     let status = body.status.clone().unwrap_or_else(|| "pending".to_string());
 

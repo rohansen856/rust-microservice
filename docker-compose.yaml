@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres-server
+    restart: always
+    environment:
+      POSTGRES_USER: admin  # Username for PostgreSQL
+      POSTGRES_PASSWORD: securepassword  # Password for the PostgreSQL user
+      POSTGRES_DB: mydb  # Default database to create
+    ports:
+      - "5432:5432"  # Expose the PostgreSQL port
+    volumes:
+      - postgres-data:/var/lib/postgresql/data  # Persistent storage for data
+      - ./init-db:/docker-entrypoint-initdb.d/  # For initialization scripts (optional)
+
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "admin"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  redis:
+    image: redis:latest
+    container_name: redis-server
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    environment:
+      REDIS_REPLICATION_MODE: "master"
+      REDIS_SAVE_INTERVAL: "900 1 300 10 60 10000"
+      REDIS_LOG_LEVEL: "notice"
+    command: [
+      "redis-server", 
+      "--appendonly", "yes",
+      "--maxmemory", "256mb",                # Set max memory limit for Redis
+      "--maxmemory-policy", "allkeys-lru"    # Eviction policy (LRU = Least Recently Used)
+    ]
+
+  zookeeper:
+    image: zookeeper:latest
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CREATE_TOPICS: "test-topic:1:1"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    depends_on:
+      - zookeeper
+
+volumes:
+  postgres-data:
+    driver: local  # Persistent storage driver
+  redis-data:
+    driver: local  # Persistent cache driver
