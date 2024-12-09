@@ -40,6 +40,6 @@ async fn main(){
     println!("backend server urls: {:?}", servers);
 
     let load_balancer = LoadBalancer::new(port, servers);
-    println!("Rate Limiter running on {}", load_balancer.uri());
+    println!("Load Balancer running on {}", load_balancer.uri());
     load_balancer.run().await
 }
