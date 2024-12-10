@@ -47,7 +47,7 @@ async fn main() -> std::io::Result<()> {
     let kafka_brokers = std::env::var("KAFKA_BROKERS").unwrap_or("localhost:9092".to_string());
     let kafka_producer = Arc::new(KafkaProducer::new(&kafka_brokers));
 
-    println!("Server 1 running on port: {}", port.clone());
+    println!("Server 2 running on port: {}", port.clone());
     HttpServer::new(move || {
         App::new()
             .app_data(Data::new(AppState { db: pool.clone(), kafka_producer: kafka_producer.clone(), }))

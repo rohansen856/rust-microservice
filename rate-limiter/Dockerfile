@@ -15,6 +15,8 @@ RUN cargo fetch && cargo build
 # Copy the source code
 COPY . .
 
+EXPOSE 8888
+
 # Default command for development
 CMD ["cargo", "run"]
 

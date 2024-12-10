@@ -13,6 +13,7 @@ services:
       - "5050:5050" # Map port 5050 inside the container to 8081 on the host
     volumes:
       - ./server-1:/usr/src/app # Mount the server-1 directory for development
+    command: [ "cargo", "run" ]
 
   server-2:
     build:
@@ -26,6 +27,7 @@ services:
       - "8080:8080" # Map port 8080 inside the container to 8082 on the host
     volumes:
       - ./server-2:/usr/src/app # Mount the server-2 directory for development
+    command: [ "cargo", "run" ]
 
   load-balancer:
     build:
@@ -39,6 +41,7 @@ services:
       - "1234:1234" # Map port 1234 inside the container to 8082 on the host
     volumes:
       - ./load-balancer:/usr/src/app # Mount the load-balancer directory for development
+    command: [ "cargo", "run" ]
 
   rate-limiter:
     build:
@@ -52,6 +55,7 @@ services:
       - "8888:8888" # Map port 8888 inside the container to 8082 on the host
     volumes:
       - ./rate-limiter:/usr/src/app # Mount the rate-limiter directory for development
+    command: [ "cargo", "run" ]
 
   analytics:
     build:
@@ -64,6 +68,7 @@ services:
       - kafka
     volumes:
       - ./analytics:/usr/src/app # Mount the analytics directory for development
+    command: [ "cargo", "run" ]
 
   postgres:
     image: postgres:latest
