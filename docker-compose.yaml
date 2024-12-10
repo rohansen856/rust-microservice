@@ -14,6 +14,8 @@ services:
     volumes:
       - ./server-1:/usr/src/app # Mount the server-1 directory for development
     command: [ "cargo", "run" ]
+    profiles:
+      - server
 
   server-2:
     build:
@@ -28,6 +30,8 @@ services:
     volumes:
       - ./server-2:/usr/src/app # Mount the server-2 directory for development
     command: [ "cargo", "run" ]
+    profiles:
+      - server
 
   load-balancer:
     build:
@@ -42,6 +46,8 @@ services:
     volumes:
       - ./load-balancer:/usr/src/app # Mount the load-balancer directory for development
     command: [ "cargo", "run" ]
+    profiles:
+      - server
 
   rate-limiter:
     build:
@@ -56,6 +62,8 @@ services:
     volumes:
       - ./rate-limiter:/usr/src/app # Mount the rate-limiter directory for development
     command: [ "cargo", "run" ]
+    profiles:
+      - server
 
   analytics:
     build:
@@ -69,6 +77,8 @@ services:
     volumes:
       - ./analytics:/usr/src/app # Mount the analytics directory for development
     command: [ "cargo", "run" ]
+    profiles:
+      - server
 
   postgres:
     image: postgres:latest
@@ -89,6 +99,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+    profiles:
+      - database
 
   redis:
     image: redis:latest
@@ -112,6 +124,8 @@ services:
         "--maxmemory-policy",
         "allkeys-lru" # Eviction policy (LRU = Least Recently Used)
       ]
+    profiles:
+      - database
 
   zookeeper:
     image: zookeeper:latest
@@ -121,6 +135,8 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    profiles:
+      - database
 
   kafka:
     image: confluentinc/cp-kafka:latest
@@ -137,6 +153,8 @@ services:
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     depends_on:
       - zookeeper
+    profiles:
+      - database
 
 volumes:
   postgres-data:

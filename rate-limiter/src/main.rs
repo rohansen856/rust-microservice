@@ -17,7 +17,10 @@ async fn main() -> std::io::Result<()> {
     let redis_url = env::var("REDIS_URL").expect("No REDIS_URL provided in env var");
     
     // Define the request limit
-    let request_limit: usize = 10; // Example limit, can also be loaded from env vars
+    let request_limit: usize = env::var("RATE_LIMIT")
+        .expect("No Rate Limit provided in env var")
+        .parse()
+        .expect("Rate Limit must be a valid u16");
 
     // Create and run the RateLimiter
     let rate_limiter = RateLimiter::new(port, forward_url, redis_url, request_limit);
