@@ -34,6 +34,14 @@ pub async fn test_server() -> impl Responder {
 
 #[get("/todos")]
 pub async fn fetch_todos(state: Data<AppState>) -> impl Responder {
+    state.prometheus.http_requests_total
+        .with_label_values(&["GET", "/todos"])
+        .inc();
+
+    let timer = state.prometheus.http_request_duration_seconds
+        .with_label_values(&["GET", "/todos"])
+        .start_timer();
+
     let kafka_producer = &state.kafka_producer;
     kafka_producer.produce("test-topic", "fetch").await;
 
@@ -43,13 +51,24 @@ pub async fn fetch_todos(state: Data<AppState>) -> impl Responder {
     .fetch_all(&state.db)
     .await
     {
-        Ok(todos) => HttpResponse::Ok().json(todos),
+        Ok(todos) => {
+            timer.observe_duration();
+            HttpResponse::Ok().json(todos)
+        },
         Err(_) => HttpResponse::NotFound().json("No todos found"),
     }
 }
 
 #[post("/todo")]
 pub async fn create_todo(state: Data<AppState>, body: Json<CreateTodoBody>) -> impl Responder {
+    state.prometheus.http_requests_total
+        .with_label_values(&["POST", "/todos"])
+        .inc();
+
+    let timer = state.prometheus.http_request_duration_seconds
+        .with_label_values(&["POST", "/todos"])
+        .start_timer();
+
     let kafka_producer = &state.kafka_producer;
     kafka_producer.produce("test-topic", "create").await;
 
@@ -67,7 +86,10 @@ pub async fn create_todo(state: Data<AppState>, body: Json<CreateTodoBody>) -> i
     .fetch_one(&state.db)
     .await
     {
-        Ok(todo) => HttpResponse::Ok().json(todo),
+        Ok(todo) => {
+            timer.observe_duration();
+            HttpResponse::Ok().json(todo)
+        },
         Err(err) => {
             println!("{:?}", err);
             HttpResponse::InternalServerError().json("Failed to create Todo")},
