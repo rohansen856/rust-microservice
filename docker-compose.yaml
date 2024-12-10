@@ -1,22 +1,86 @@
-version: '3.8'
+version: "3.8"
 
 services:
+  server-1:
+    build:
+      context: ./server-1
+      dockerfile: Dockerfile
+    container_name: rust_server_1
+    env_file: ./server-1/.env # Load environment variables from server-1's .env file
+    depends_on:
+      - postgres
+    ports:
+      - "5050:5050" # Map port 5050 inside the container to 8081 on the host
+    volumes:
+      - ./server-1:/usr/src/app # Mount the server-1 directory for development
+
+  server-2:
+    build:
+      context: ./server-2
+      dockerfile: Dockerfile
+    container_name: rust_server_2
+    env_file: ./server-2/.env # Load environment variables from server-2's .env file
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080" # Map port 8080 inside the container to 8082 on the host
+    volumes:
+      - ./server-2:/usr/src/app # Mount the server-2 directory for development
+
+  load-balancer:
+    build:
+      context: ./load-balancer
+      dockerfile: Dockerfile
+    container_name: rust_load_balancer
+    env_file: ./load-balancer/.env # Load environment variables from load-balancer's .env file
+    depends_on:
+      - postgres
+    ports:
+      - "1234:1234" # Map port 1234 inside the container to 8082 on the host
+    volumes:
+      - ./load-balancer:/usr/src/app # Mount the load-balancer directory for development
+
+  rate-limiter:
+    build:
+      context: ./rate-limiter
+      dockerfile: Dockerfile
+    container_name: rust_rate_limiter
+    env_file: ./rate-limiter/.env # Load environment variables from rate-limiter's .env file
+    depends_on:
+      - redis
+    ports:
+      - "8888:8888" # Map port 8888 inside the container to 8082 on the host
+    volumes:
+      - ./rate-limiter:/usr/src/app # Mount the rate-limiter directory for development
+
+  analytics:
+    build:
+      context: ./analytics
+      dockerfile: Dockerfile
+    container_name: rust_analytics
+    env_file: ./analytics/.env # Load environment variables from analytics's .env file
+    depends_on:
+      - zookeeper
+      - kafka
+    volumes:
+      - ./analytics:/usr/src/app # Mount the analytics directory for development
+
   postgres:
     image: postgres:latest
     container_name: postgres-server
     restart: always
     environment:
-      POSTGRES_USER: admin  # Username for PostgreSQL
-      POSTGRES_PASSWORD: securepassword  # Password for the PostgreSQL user
-      POSTGRES_DB: mydb  # Default database to create
+      POSTGRES_USER: admin # Username for PostgreSQL
+      POSTGRES_PASSWORD: securepassword # Password for the PostgreSQL user
+      POSTGRES_DB: mydb # Default database to create
     ports:
-      - "5432:5432"  # Expose the PostgreSQL port
+      - "5432:5432" # Expose the PostgreSQL port
     volumes:
-      - postgres-data:/var/lib/postgresql/data  # Persistent storage for data
-      - ./init-db:/docker-entrypoint-initdb.d/  # For initialization scripts (optional)
+      - postgres-data:/var/lib/postgresql/data # Persistent storage for data
+      - ./init-db:/docker-entrypoint-initdb.d/ # For initialization scripts (optional)
 
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "admin"]
+      test: [ "CMD", "pg_isready", "-U", "admin" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -33,12 +97,16 @@ services:
       REDIS_REPLICATION_MODE: "master"
       REDIS_SAVE_INTERVAL: "900 1 300 10 60 10000"
       REDIS_LOG_LEVEL: "notice"
-    command: [
-      "redis-server", 
-      "--appendonly", "yes",
-      "--maxmemory", "256mb",                # Set max memory limit for Redis
-      "--maxmemory-policy", "allkeys-lru"    # Eviction policy (LRU = Least Recently Used)
-    ]
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes",
+        "--maxmemory",
+        "256mb", # Set max memory limit for Redis
+        "--maxmemory-policy",
+        "allkeys-lru" # Eviction policy (LRU = Least Recently Used)
+      ]
 
   zookeeper:
     image: zookeeper:latest
@@ -67,6 +135,6 @@ services:
 
 volumes:
   postgres-data:
-    driver: local  # Persistent storage driver
+    driver: local # Persistent storage driver
   redis-data:
-    driver: local  # Persistent cache driver
+    driver: local # Persistent cache driver

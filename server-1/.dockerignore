@@ -1,0 +1,28 @@
+# Ignore build artifacts
+target/
+build/
+
+# Ignore editor and IDE files
+*.swp
+*.swo
+*.bak
+*.tmp
+*.log
+.idea/
+.vscode/
+*.iml
+
+# Ignore git files
+.git/
+.gitignore
+
+# Ignore demo environment variables
+.env.example
+
+# Ignore Docker-related files (optional if not needed in the container)
+Dockerfile
+docker-compose.yml
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
