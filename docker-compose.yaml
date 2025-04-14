@@ -83,7 +83,7 @@ services:
   postgres:
     image: postgres:latest
     container_name: postgres-server
-    restart: always
+    restart: no
     environment:
       POSTGRES_USER: admin # Username for PostgreSQL
       POSTGRES_PASSWORD: securepassword # Password for the PostgreSQL user
@@ -105,7 +105,7 @@ services:
   redis:
     image: redis:latest
     container_name: redis-server
-    restart: always
+    restart: no
     ports:
       - "6379:6379"
     volumes:
