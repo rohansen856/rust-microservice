@@ -2,6 +2,8 @@ use prometheus::{Encoder, HistogramVec, IntCounterVec, Registry, TextEncoder};
 use std::sync::Arc;
 use actix_web::{HttpResponse, Responder, web::Data};
 
+use crate::AppState;
+
 pub struct PrometheusMetrics {
     pub registry: Arc<Registry>,
     pub http_requests_total: IntCounterVec,
@@ -38,10 +40,11 @@ impl PrometheusMetrics {
         }
     }
 
-    pub async fn metrics_handler(data: Data<PrometheusMetrics>) -> impl Responder {
+    pub async fn metrics_handler(state: Data<AppState>) -> impl Responder {
+        let prometheus = &state.prometheus;
         let mut buffer = Vec::new();
         let encoder = TextEncoder::new();
-        let metric_families = data.registry.gather();
+        let metric_families = prometheus.registry.gather();
         encoder.encode(&metric_families, &mut buffer).unwrap();
 
         HttpResponse::Ok()
